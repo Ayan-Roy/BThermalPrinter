@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.dantsu.escposprinter.EscPosPrinter;
+import com.dantsu.escposprinter.connection.bluetooth.BluetoothConnection;
 import com.dantsu.escposprinter.connection.bluetooth.BluetoothPrintersConnections;
 import com.dantsu.escposprinter.exceptions.EscPosConnectionException;
 import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int PERMISSION_BLUETOOTH_ADMIN = 2;
     public static final int PERMISSION_BLUETOOTH_CONNECT = 3;
     public static final int PERMISSION_BLUETOOTH_SCAN = 4;
+    private boolean allAccessGranted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         btnPrint = findViewById(R.id.btn_Print);
         edtPrintText = findViewById(R.id.edt_print_text);
 
+        checkBluetoothPermissions();
         setActionListener();
     }
 
@@ -49,8 +52,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                if (checkBluetoothEnabled())
+                if (checkBluetoothEnabled() && allAccessGranted) {
+                    printBluetooth();
+                } else {
+                    Toast.makeText(MainActivity.this, "Please Allow Required Permission", Toast.LENGTH_SHORT).show();
                     checkBluetoothPermissions();
+                }
             }
         });
     }
@@ -83,11 +90,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_SCAN}, MainActivity.PERMISSION_BLUETOOTH_SCAN);
         } else {
-            try {
-                printBluetooth();
-            } catch (Exception exp) {
-                exp.printStackTrace();
-            }
+            allAccessGranted = true;
         }
     }
 
@@ -107,18 +110,41 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void printBluetooth() throws Exception {
-        EscPosPrinter printer = new EscPosPrinter(BluetoothPrintersConnections.selectFirstPaired(), 203, 48f, 32);
+
+
+
+
+    public void printBluetooth() {
+
+        BluetoothConnection printerConnection = BluetoothPrintersConnections.selectFirstPaired();
+        if (printerConnection == null) {
+            Toast.makeText(this, "No paired Bluetooth printer found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+
+        try {
+            EscPosPrinter printer = new EscPosPrinter(printerConnection, 203, 48f, 32);
+            printer.printFormattedText(getInvoiceDataAsText(printer));
+            Log.e(TAG, "Invoice Printed:");
+        } catch (Exception e) {
+            Log.e(TAG, "Printer connection failed", e);
+            Toast.makeText(this, "Printer connection failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
+
+/*        EscPosPrinter printer = new EscPosPrinter(BluetoothPrintersConnections.selectFirstPaired(), 203, 48f, 32);
         printer.printFormattedText(getInvoiceDataAsText(printer));
-        Log.e(TAG, "Invoice Printed:");
-        Toast.makeText(this, "Invoice Printed", Toast.LENGTH_SHORT).show();
+        Log.e(TAG, "Invoice Printed:");*/
+        //Toast.makeText(this, "Invoice Printed", Toast.LENGTH_SHORT).show();
 
     }
 
     private String getInvoiceDataAsText(EscPosPrinter printer) {
         String strData = edtPrintText.getText().toString();
         String rptData =
-                "[L]<font size='normal'>"+ strData+"</font>";
+                "[L]<font size='normal'>" + strData + "</font>";
 
 
         return rptData;
