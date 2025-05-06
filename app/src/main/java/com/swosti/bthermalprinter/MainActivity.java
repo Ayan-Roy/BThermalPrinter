@@ -19,11 +19,13 @@ import com.dantsu.escposprinter.connection.bluetooth.BluetoothPrintersConnection
 import com.dantsu.escposprinter.exceptions.EscPosConnectionException;
 import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "MainActivity";
     private MaterialButton btnPrint;
+    private TextInputEditText edtPrintText;
     public static final int PERMISSION_BLUETOOTH = 1;
 
     public static final int PERMISSION_BLUETOOTH_ADMIN = 2;
@@ -36,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         btnPrint = findViewById(R.id.btn_Print);
+        edtPrintText = findViewById(R.id.edt_print_text);
+
         setActionListener();
     }
 
@@ -112,10 +116,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getInvoiceDataAsText(EscPosPrinter printer) {
-
-        String rptData = "[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, this.getApplicationContext().getResources().getDrawableForDensity(R.drawable.icon_app_store, DisplayMetrics.DENSITY_MEDIUM)) + "</img>\n" +
-                "[L]\n" +
-                "[C]<u><font size='big'>Demo Organization</font></u>\n";
+        String strData = edtPrintText.getText().toString();
+        String rptData =
+                "[L]<font size='normal'>"+ strData+"</font>";
 
 
         return rptData;
