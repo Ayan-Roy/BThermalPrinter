@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
     private MaterialButton btnPrint;
     public static final int PERMISSION_BLUETOOTH = 1;
+
     public static final int PERMISSION_BLUETOOTH_ADMIN = 2;
     public static final int PERMISSION_BLUETOOTH_CONNECT = 3;
     public static final int PERMISSION_BLUETOOTH_SCAN = 4;
